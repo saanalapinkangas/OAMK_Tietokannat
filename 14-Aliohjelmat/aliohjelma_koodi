@@ -1,0 +1,38 @@
+CREATE DEFINER=`saanalapinkangas`@`localhost` PROCEDURE `LisaaOpintosuoritus`(
+IN Etun VARCHAR(45), 
+IN Sukun VARCHAR(45),
+IN KurssiNimi VARCHAR(45),
+IN Arvosana INT)
+Aliohjelma:BEGIN
+DECLARE minArvosana tinyint DEFAULT 0;		-- muuttuja alimmasta arvosanasta
+DECLARE maxArvosana tinyint DEFAULT 5;		-- muuttuja korkeimmasta arvosanasta
+DECLARE muutOpiskelija INT DEFAULT 0;		-- muuttuja opiskelijan testaukseen
+DECLARE muutKurssiNimi INT DEFAULT 0;		-- muuttuja kurssin testaukseen
+
+-- testataan opiskelijan löytyminen järjestelmästä:
+SELECT idOpiskelija INTO muutOpiskelija FROM Opiskelija WHERE Etunimi=Etun AND Sukunimi=Sukun;
+IF muutOpiskelija=0 THEN
+SELECT 'Opiskelijaa ei löydy';
+LEAVE Aliohjelma;
+END IF;
+
+-- testataan kurssin löytyminen järjetelmästä:
+SELECT idOpintojakso INTO muutKurssiNimi FROM Opintojakso WHERE Nimi=KurssiNimi;
+IF muutKurssiNimi=0 THEN
+SELECT 'Opintojaksoa ei löydy';
+LEAVE Aliohjelma;
+END IF;
+
+-- testataan että arvosana on välillä 0-5:
+IF Arvosana <minArvosana OR Arvosana>maxArvosana THEN
+SELECT 'Anna arvosana välillä 0-5';
+LEAVE Aliohjelma;
+END IF;
+
+-- lisätään suoritus:
+IF Arvosana BETWEEN minArvosana AND maxArvosana THEN
+	INSERT INTO Arviointi VALUES (null, Arvosana, curdate(), muutOpiskelija, muutKurssiNimi);
+END IF;
+
+
+END
